@@ -2,9 +2,13 @@
   description = "ExpidusOS development toolchain.";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    zig.url = "github:ExpidusOS/zig/expidus";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     flake-utils.url = "github:numtide/flake-utils";
+
+    zig = {
+      url = "github:ExpidusOS/zig/expidus";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # Used for shell.nix
     flake-compat = {
