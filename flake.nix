@@ -45,6 +45,11 @@
               llvm
               lld
             ]));
+
+            postBuild = ''
+              source ${pkgs.makeWrapper}/nix-support/setup-hook
+              wrapProgram $out/bin/zig --set ZIG_SYSROOT $out
+            '';
           };
         });
 }
