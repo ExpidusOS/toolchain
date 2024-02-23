@@ -25,7 +25,7 @@
     ...
   }@inputs:
     let
-      toolchainOverlay = final: prev: {
+      patchesOverlay = final: prev: {
         coreutils = prev.coreutils.overrideAttrs (f: p: {
           doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
         });
@@ -41,7 +41,9 @@
         diffutils = prev.diffutils.overrideAttrs (f: p: {
           doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
         });
+      };
 
+      toolchainOverlay = final: prev: {
         expidus = prev.expidus // {
           toolchain = prev.symlinkJoin {
             name = "expidus-toolchain-${self.shortRev or "dirty"}";
@@ -80,8 +82,9 @@
         system:
           let
             pkgs = (import nixpkgs {inherit system;}).appendOverlays [
-              toolchainOverlay
+              patchesOverlay
               zig.overlays.default
+              toolchainOverlay
             ];
           in {
             packages.default = pkgs.expidus.toolchain;
@@ -89,6 +92,7 @@
           })) // {
             overlays = {
               default = toolchainOverlay;
+              patches = patchesOverlay;
               zig = zig.overlays.default;
             };
           };
