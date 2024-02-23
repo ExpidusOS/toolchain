@@ -1,0 +1,50 @@
+{
+  description = "ExpidusOS development toolchain.";
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    zig.url = "github:ExpidusOS/zig/expidus";
+    flake-utils.url = "github:numtide/flake-utils";
+
+    # Used for shell.nix
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+  };
+
+  outputs = {
+    self,
+    nixpkgs,
+    zig,
+    flake-utils,
+    ...
+  }@inputs:
+    flake-utils.lib.eachSystem flake-utils.lib.allSystems (
+      system:
+        let
+          pkgs = import nixpkgs {inherit system;};
+        in {
+          packages.default = pkgs.symlinkJoin {
+            name = "expidus-toolchain-${self.shortRev or "dirty"}";
+
+            paths = with pkgs; let
+              expandSingleDep = dep: if lib.isDerivation dep then
+                ([ dep ] ++ builtins.map (output: dep.${output}) dep.outputs)
+              else [];
+
+              expandDeps = deps: lib.flatten (builtins.map expandSingleDep deps);
+            in expandDeps ([
+              inputs.zig.packages.${system}.default
+              python3
+              meson
+              cmake
+              ninja
+              gnumake
+            ] ++ (with llvmPackages_17; [
+              llvm
+              lld
+            ]));
+          };
+        });
+}
