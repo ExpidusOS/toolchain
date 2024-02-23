@@ -24,34 +24,29 @@
     flake-utils,
     ...
   }@inputs:
-    flake-utils.lib.eachSystem flake-utils.lib.allSystems (
-      system:
-        let
-          pkgs = (import nixpkgs {inherit system;}).appendOverlays [
-            (final: prev: {
-              coreutils = prev.coreutils.overrideAttrs (f: p: {
-                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
-              });
+    let
+      toolchainOverlay = final: prev: {
+        coreutils = prev.coreutils.overrideAttrs (f: p: {
+          doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+        });
 
-              coreutils-full = prev.coreutils-full.overrideAttrs (f: p: {
-                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
-              });
+        coreutils-full = prev.coreutils-full.overrideAttrs (f: p: {
+          doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+        });
 
-              findutils = prev.findutils.overrideAttrs (f: p: {
-                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
-              });
+        findutils = prev.findutils.overrideAttrs (f: p: {
+          doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+        });
 
-              diffutils = prev.diffutils.overrideAttrs (f: p: {
-                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
-              });
-            })
-            zig.overlays.default
-          ];
-        in {
-          packages.default = pkgs.symlinkJoin {
+        diffutils = prev.diffutils.overrideAttrs (f: p: {
+          doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+        });
+
+        expidus = prev.expidus // {
+          toolchain = prev.symlinkJoin {
             name = "expidus-toolchain-${self.shortRev or "dirty"}";
 
-            paths = with pkgs; let
+            paths = with prev; let
               expandSingleDep = dep: if lib.isDerivation dep then
                 ([ dep ] ++ builtins.map (output: dep.${output}) dep.outputs)
               else [];
@@ -74,11 +69,27 @@
             ]));
 
             postBuild = ''
-              source ${pkgs.makeWrapper}/nix-support/setup-hook
+              source ${prev.makeWrapper}/nix-support/setup-hook
               wrapProgram $out/bin/zig --set ZIG_SYSROOT $out
             '';
           };
-
-          legacyPackages = pkgs;
-        });
+        };
+      };
+    in
+      (flake-utils.lib.eachSystem flake-utils.lib.allSystems (
+        system:
+          let
+            pkgs = (import nixpkgs {inherit system;}).appendOverlays [
+              toolchainOverlay
+              zig.overlays.default
+            ];
+          in {
+            packages.default = pkgs.expidus.toolchain;
+            legacyPackages = pkgs;
+          })) // {
+            overlays = {
+              default = toolchainOverlay;
+              zig = zig.overlays.default;
+            };
+          };
 }
