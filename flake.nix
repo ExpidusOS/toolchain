@@ -43,6 +43,8 @@
               gnumake
               flex
               bison
+              autoconf
+              libtool
             ] ++ (with llvmPackages_17; [
               llvm
               lld
