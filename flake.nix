@@ -27,7 +27,26 @@
     flake-utils.lib.eachSystem flake-utils.lib.allSystems (
       system:
         let
-          pkgs = import nixpkgs {inherit system;};
+          pkgs = (import nixpkgs {inherit system;}).appendOverlays [
+            (final: prev: {
+              coreutils = prev.coreutils.overrideAttrs (f: p: {
+                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+              });
+
+              coreutils-full = prev.coreutils-full.overrideAttrs (f: p: {
+                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+              });
+
+              findutils = prev.findutils.overrideAttrs (f: p: {
+                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+              });
+
+              diffutils = prev.diffutils.overrideAttrs (f: p: {
+                doCheck = p.doCheck && !prev.hostPlatform.isAarch64;
+              });
+            })
+            zig.overlays.default
+          ];
         in {
           packages.default = pkgs.symlinkJoin {
             name = "expidus-toolchain-${self.shortRev or "dirty"}";
@@ -39,7 +58,7 @@
 
               expandDeps = deps: lib.flatten (builtins.map expandSingleDep deps);
             in expandDeps ([
-              inputs.zig.packages.${system}.default
+              pkgs.zig
               python3
               meson
               cmake
@@ -59,5 +78,7 @@
               wrapProgram $out/bin/zig --set ZIG_SYSROOT $out
             '';
           };
+
+          legacyPackages = pkgs;
         });
 }
