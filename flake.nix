@@ -41,6 +41,8 @@
               cmake
               ninja
               gnumake
+              flex
+              bison
             ] ++ (with llvmPackages_17; [
               llvm
               lld
