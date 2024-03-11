@@ -131,11 +131,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1710127130,
-        "narHash": "sha256-u6VARLLkldpsksEjeaz68/I9arelNJ/tYhrlflxaQp8=",
+        "lastModified": 1710132289,
+        "narHash": "sha256-XYJzLWQpIut+cj4QFGg6RiKeTdUCJxg9cqRvywy4WZ4=",
         "owner": "ExpidusOS",
         "repo": "zig",
-        "rev": "e261f4f3b2c4f56e14b3a52adaf83efd17eec659",
+        "rev": "9fc8907813031c41b8dfe36fb425f4030eb90776",
         "type": "github"
       },
       "original": {
