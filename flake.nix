@@ -90,6 +90,25 @@
           in {
             packages.default = pkgs.expidus.toolchain;
             legacyPackages = pkgs;
+
+            devShells.default = pkgs.mkShell {
+              nativeBuildInputs = with pkgs;
+                [
+                  stdenv.cc.cc.lib
+                  cmake
+                  libxml2
+                  ninja
+                  zlib
+                ]
+                ++ (with llvmPackages_17; [
+                  clang
+                  clang-unwrapped
+                  lld
+                  llvm
+                ]);
+
+              hardeningDisable = ["all"];
+            };
           })) // {
             overlays = {
               default = toolchainOverlay;
