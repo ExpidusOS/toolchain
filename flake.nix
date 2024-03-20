@@ -95,6 +95,7 @@
               nativeBuildInputs = with pkgs;
                 [
                   stdenv.cc.cc.lib
+                  stdenv.cc.cc.libc_dev.out
                   cmake
                   libxml2
                   ninja
